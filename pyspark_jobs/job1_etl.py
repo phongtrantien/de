@@ -6,4 +6,5 @@ def etl_job():
     df.show()
 
 if __name__ == "__main__":
+    print("test update")
     etl_job()
