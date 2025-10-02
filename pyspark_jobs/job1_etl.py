@@ -7,4 +7,5 @@ def etl_job():
 
 if __name__ == "__main__":
     print("test update")
+    print("test update bracnhes")
     etl_job()
