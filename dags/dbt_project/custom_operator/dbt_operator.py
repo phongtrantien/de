@@ -111,3 +111,4 @@ class DbtCoreOperator(BaseOperator):
 
         self.log.info("dbt completed with %d results", len(summary["results"]))
         return summary
+
