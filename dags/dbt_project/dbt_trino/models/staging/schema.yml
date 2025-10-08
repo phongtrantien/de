@@ -1,0 +1,14 @@
+version: 2
+models:
+  - name: stg_policy
+    description: "staging policy"
+  - name: stg_customer
+    description: "staging customer"
+  - name: stg_claim
+    description: "staging claim"
+  - name: stg_payment
+    description: "staging payment"
+  - name: stg_agent
+    description: "staging agent"
+  - name: stg_product
+    description: "staging product"
