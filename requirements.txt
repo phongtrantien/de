@@ -2,3 +2,7 @@ apache-airflow
 pyspark
 dbt-core
 pytest
+s3fs
+minio
+dbt-core==1.10.10
+dbt-trino==1.9.3

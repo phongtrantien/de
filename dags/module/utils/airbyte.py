@@ -2,17 +2,18 @@ import requests
 import time
 from airflow.exceptions import AirflowException
 from dags.module.config_loader import load_env
+from requests.auth import HTTPBasicAuth
 
 config = load_env()
-
+user = config['airbyte']['user']
+password = config['airbyte']['password']
 
 def trigger_sync(connection_id: str) -> str:
 
     url = f"{config['airbyte']['api']}/connections/sync"
     payload = {"connectionId": connection_id}
-
     print(f"[Airbyte] Triggering sync for connection {connection_id} at {url}")
-    resp = requests.post(url, json=payload)
+    resp = requests.post(url, json=payload, auth=HTTPBasicAuth(user, password))
 
     if resp.status_code != 200:
         raise AirflowException(f"Failed to trigger Airbyte sync: {resp.text}")
@@ -32,7 +33,7 @@ def wait_for_job(job_id: str, poll_interval: int = 20, timeout: int = 1800):
 
     print(f"[Airbyte] Waiting for job {job_id} to complete...")
     while time.time() - start_time < timeout:
-        resp = requests.post(url, json={"id": job_id})
+        resp = requests.post(url, json={"id": job_id}, auth=HTTPBasicAuth(user, password))
         if resp.status_code != 200:
             raise AirflowException(f"Failed to get job status: {resp.text}")
 
