@@ -2,18 +2,38 @@ import io
 import pyarrow.parquet as pq
 from minio import Minio
 from dags.module.config_loader import load_env
-
+import logging
 config = load_env()
 
 
-def get_minio_client():
+def get_minio_client(config):
 
-    return Minio(
-        endpoint=config["s3"]["endpoint"],
-        access_key=config["s3"]["access_key"],
-        secret_key=config["s3"]["secret_key"],
-        secure=config["s3"].get("secure", "false").lower() == "true",
-    )
+    try:
+        endpoint = config["s3"]["endpoint"]
+        access_key = config["s3"]["access_key"]
+        secret_key = config["s3"]["secret_key"]
+        secure = str(config["s3"].get("secure", "false")).lower() == "true"
+
+        logging.info(f"[MinIO] Connecting to endpoint: {endpoint} (secure={secure})")
+
+        client = Minio(
+            endpoint=endpoint,
+            access_key=access_key,
+            secret_key=secret_key,
+            secure=secure
+        )
+
+        # Optional: test connection (list buckets)
+        _ = client.list_buckets()
+        logging.info("[MinIO] Connection successful.")
+        return client
+
+    except S3Error as e:
+        logging.error(f"[MinIO] S3Error: {e}")
+        return None
+    except Exception as e:
+        logging.error(f"[MinIO] Failed to initialize client: {str(e)}", exc_info=True)
+        return None
 
 def list_parquet_files(bucket: str, prefix: str):
 
