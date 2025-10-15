@@ -1,8 +1,8 @@
 import logging
 from trino.dbapi import connect
 from airflow.exceptions import AirflowException
-from module.config_loader import load_env
-from module.utils.schema_detect import extract_schema_from_parquet
+from dags.module.config_loader import load_env
+from dags.module.utils.schema_detect import extract_schema_from_parquet
 import pyarrow.parquet as pq
 import pandas as pd
 import s3fs
@@ -15,7 +15,7 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s"
 )
 
-
+logging.info("start")
 def format_value_for_sql(v):
     if v is None:
         return "NULL"

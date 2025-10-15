@@ -6,34 +6,39 @@ import logging
 config = load_env()
 
 
-def get_minio_client(config):
+def get_minio_client():
 
     try:
         endpoint = config["s3"]["endpoint"]
         access_key = config["s3"]["access_key"]
         secret_key = config["s3"]["secret_key"]
-        secure = str(config["s3"].get("secure", "false")).lower() == "true"
+        secure = config["s3"].get("secure", "false").lower() == "true"
 
-        logging.info(f"[MinIO] Connecting to endpoint: {endpoint} (secure={secure})")
 
         client = Minio(
             endpoint=endpoint,
             access_key=access_key,
             secret_key=secret_key,
-            secure=secure
+            secure=secure,
         )
 
-        # Optional: test connection (list buckets)
-        _ = client.list_buckets()
-        logging.info("[MinIO] Connection successful.")
+
+        client.list_buckets()
+
+        logging.info(f"Kết nối MinIO thành công tới endpoint: {endpoint}")
         return client
 
+    except KeyError as e:
+        logging.error(f"Thiếu khóa cấu hình trong file config: {e}")
+        raise
+
     except S3Error as e:
-        logging.error(f"[MinIO] S3Error: {e}")
-        return None
+        logging.error(f"Lỗi S3 khi kết nối MinIO: {e}")
+        raise
+
     except Exception as e:
-        logging.error(f"[MinIO] Failed to initialize client: {str(e)}", exc_info=True)
-        return None
+        logging.error(f"Lỗi không xác định khi khởi tạo MinIO client: {e}", exc_info=True)
+        raise
 
 def list_parquet_files(bucket: str, prefix: str):
 
