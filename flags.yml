@@ -1,0 +1,15 @@
+flags:
+  - name: USE_BASIC_AUTH
+    serve:
+      type: constant
+      value: true
+
+  - name: BASIC_AUTH_USERNAME
+    serve:
+      type: constant
+      value: "airbyte"
+
+  - name: BASIC_AUTH_PASSWORD
+    serve:
+      type: constant
+      value: "airbyte"

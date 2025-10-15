@@ -1,0 +1,21 @@
+
+version: 2
+
+models:
+  - name: fact_claim
+    columns:
+      - name: claim_id
+        data_tests:
+          - not_null
+  - name: dim_customer
+    columns:
+      - name: customer_id
+        data_tests:
+          - not_null
+          - unique
+  - name: dim_policy
+    columns:
+      - name: policy_id
+        data_tests:
+          - not_null
+          - unique
