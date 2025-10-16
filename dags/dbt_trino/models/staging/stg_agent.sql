@@ -3,10 +3,9 @@
 SELECT
 	agent_id,
 	agent_name,
-	hire_date,
-	branch,
+	created_at as hire_date,
+	region as branch,
 	phone,
 	email,
-	status,
-	load_timestamp as load_ts
+	updated_at as load_ts
 FROM {{ source('raw','agent') }}

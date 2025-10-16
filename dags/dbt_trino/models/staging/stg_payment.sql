@@ -6,5 +6,5 @@ SELECT
   payment_date,
   payment_amount,
   payment_method,
-  load_timestamp as load_ts
+  updated_at as load_ts
 FROM {{ source('raw','payment') }}

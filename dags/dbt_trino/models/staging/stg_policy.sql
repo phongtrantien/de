@@ -2,9 +2,9 @@
 
 SELECT
   policy_id,
-  product_id,
+  policy_type as product_id,
   start_date,
   end_date,
   customer_id,
-  load_timestamp as load_ts
+  updated_at as load_ts
 FROM {{ source('raw','policy') }}

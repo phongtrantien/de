@@ -9,6 +9,8 @@ def load_env():
         "airbyte": {
             "api": os.getenv("AIRBYTE_API"),
             "connections": [c.strip() for c in os.getenv("AIRBYTE_CONNECTIONS", "").split(",") if c.strip()],
+	    "user": os.getenv("AIRBYTE_USER"),
+	    "password": os.getenv("AIRBYTE_PASSWORD")
         },
         "trino": {
             "host": os.getenv("TRINO_HOST"),
@@ -34,7 +36,7 @@ def load_env():
             "profiles_dir": os.getenv("DBT_PROFILES_DIR"),
         },
         "size_config": {
-            "batch_size": os.getenv("BATCH_SIZE",100)
+            "batch_size": int(os.getenv("BATCH_SIZE",100))
         }
     }
 

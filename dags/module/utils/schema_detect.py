@@ -1,7 +1,7 @@
 import io
 import pyarrow.parquet as pq
 from minio import Minio, S3Error
-from dags.module.config_loader import load_env
+from module.config_loader import load_env
 import logging
 config = load_env()
 
@@ -9,10 +9,10 @@ config = load_env()
 def get_minio_client():
 
     try:
-        endpoint = config["minio"]["endpoint"]
-        access_key = config["minio"]["access_key"]
-        secret_key = config["minio"]["secret_key"]
-        secure = config["minio"].get("secure", "false").lower() == "true"
+        endpoint = config["s3"]["endpoint"]
+        access_key = config["s3"]["access_key"]
+        secret_key = config["s3"]["secret_key"]
+        secure = config["s3"].get("secure", "false").lower() == "true"
 
         endpoint = endpoint.replace("http://", "").replace("https://", "")
         if "/" in endpoint:
@@ -26,19 +26,19 @@ def get_minio_client():
         )
 
         client.list_buckets()
-        logging.info(f" Kết nối MinIO thành công tới endpoint: {endpoint}")
+        logging.info(f" Connected to MinIO with endpoint: {endpoint}")
         return client
 
     except KeyError as e:
-        logging.error(f" Thiếu khóa cấu hình trong file config: {e}")
+        logging.error(f" Missing arguments key in file config: {e}")
         raise
 
     except S3Error as e:
-        logging.error(f" Lỗi S3 khi kết nối MinIO: {e}")
+        logging.error(f" S3 Error while connect to MinIO: {e}")
         raise
 
     except Exception as e:
-        logging.error(f" Lỗi không xác định khi khởi tạo MinIO client: {e}", exc_info=True)
+        logging.error(f" Unidentified error when init MinIO client: {e}", exc_info=True)
         raise
 
 def list_parquet_files(bucket: str, prefix: str):

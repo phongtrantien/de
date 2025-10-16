@@ -2,11 +2,9 @@
 
 SELECT
   customer_id,
-  full_name,
+  customer_name,
   dob,
   gender,
   address,
-  phone,
-  email,
-  load_timestamp as load_ts
+  updated_at as load_ts
 FROM {{ source('raw','customer') }}

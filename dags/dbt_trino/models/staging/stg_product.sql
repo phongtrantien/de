@@ -4,9 +4,9 @@ SELECT
 	product_id,
 	product_name,
 	product_type,
-	coverage_amount,
-	premium_rate,
-	effective_date,
-	expiry_date,
-	load_timestamp as load_ts
+	null as coverage_amount,
+	null as premium_rate,
+	created_at as effective_date,
+	created_at as expiry_date,
+	updated_at as load_ts
 FROM {{ source('raw','product') }}

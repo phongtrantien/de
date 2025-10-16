@@ -3,7 +3,7 @@ dbt_trino:
     dev:
       type: trino
       method: none
-      user: batman
+      user: admin
       database: iceberg
       host: trino-coordinator
       port: 8080
