@@ -100,14 +100,31 @@ def create_iceberg_table_if_not_exists(table: str, auto_schema: bool = True, col
     def extract_timestamp_key(path):
         import re
         import os
+        import datetime
+
         fname = os.path.basename(path)
-        match = re.search(r"(\d{4}_\d{2}_\d{2})", fname)
+
+        match = re.search(r"^(\d{4}_\d{2}_\d{2})_(\d{13})", fname)
+        if match:
+            date_part = match.group(1)
+            epoch_part = match.group(2)
+            try:
+                # epoch / 1000
+                ts = datetime.datetime.fromtimestamp(int(epoch_part) / 1000)
+                return ts
+            except Exception:
+                pass
+
+        # chỉ lấy ngày nếu không có epoch
+        match = re.search(r"^(\d{4}_\d{2}_\d{2})", fname)
         if match:
             try:
                 return datetime.datetime.strptime(match.group(1), "%Y_%m_%d")
             except Exception:
-                return datetime.datetime.min
+                pass
+
         return datetime.datetime.min
+
 
     latest_file = sorted(files, key=extract_timestamp_key, reverse=True)[0]
     logging.info(f"[S3] Found latest parquet file for {table}: {latest_file}")
