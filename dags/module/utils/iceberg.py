@@ -1,6 +1,14 @@
 import logging
 import math
 import datetime
+from uuid import uuid4
+import os
+
+os.environ["JAVA_HOME"] = "/opt/airflow/jdk1.8.0_202"
+os.environ["PATH"] = f"{os.environ['JAVA_HOME']}/bin:" + os.environ["PATH"]
+
+from pyspark.sql import SparkSession
+import math
 import pandas as pd
 import numpy as np
 import pyarrow.parquet as pq
@@ -9,6 +17,7 @@ from trino.dbapi import connect
 from airflow.exceptions import AirflowException
 from module.config_loader import load_env
 from module.utils.schema_detect import extract_schema_from_parquet
+
 
 config = load_env()
 
@@ -185,20 +194,48 @@ def create_iceberg_table_if_not_exists(table: str, auto_schema: bool = True, col
     # --- Insert data ---
     df = df[[c for c in df.columns if not c.startswith("_")]]
     cols = ", ".join(df.columns)
-    logging.info(f"[Iceberg] Inserting {len(df)} rows with batch_size = {batch_size}")
+
+    #logging.info(f"[Iceberg] Inserting {len(df)} rows with batch_size = {batch_size}")
+
+    spark = (
+        SparkSession.builder
+        .appName("IcebergWriter")
+        .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog")
+        .config("spark.sql.catalog.iceberg.catalog-impl", "org.projectnessie.catalog.NessieCatalog")
+        .config("spark.sql.catalog.iceberg.uri", config["iceberg"]["nessie_url"])
+        .config("spark.sql.catalog.iceberg.ref", "main")
+        .config("spark.sql.catalog.iceberg.warehouse", f"s3a://{bucket}/iceberg")
+        .getOrCreate()
+    )
 
     for i in range(0, len(df), batch_size):
         chunk = df.iloc[i:i + batch_size]
-        values_sql = []
+        # tmp_path = f"s3://raw/raw/{table}/{uuid4()}.parquet"
+        # chunk.to_parquet(tmp_path, storage_options={
+        #     "key" : config["s3"]["access_key"],
+        #     "secret" : config["s3"]["secret_key"],
+        #     "client_kwargs" : {"endpoint_url": endpoint}
+        # },)
+        # values_sql = []
 
-        for row in chunk.itertuples(index=False, name=None):
-            formatted = [format_value_for_sql(v) for v in row]
-            values_sql.append(f"({', '.join(formatted)})")
+        # for row in chunk.itertuples(index=False, name=None):
+        #     formatted = [format_value_for_sql(v) for v in row]
+        #     values_sql.append(f"({', '.join(formatted)})")
+        #
+        # insert_sql = f"INSERT INTO {full_table_name} ({cols}) VALUES {', '.join(values_sql)}"
+        #
+        # size_bytes = len(insert_sql.encode('utf-8'))
+        # size_mb = size_bytes / (1024 * 1024)
+        #
+        # logging.info(f"Size: {size_mb:.2f} MB")
+        # logging.info(f"[Iceberg] Detail SQL INSERT:\n{insert_sql}")
+        # cur.execute(insert_sql)
+        df_spark = spark.createDataFrame(chunk)
+        logging.info(f"[Spark] Writing chunk {i // batch_size + 1} of {math.ceil(len(df) / batch_size)}")
 
-        insert_sql = f"INSERT INTO {full_table_name} ({cols}) VALUES {', '.join(values_sql)}"
-        logging.info(f"[Iceberg] Detail SQL INSERT:\n{insert_sql}")
-        cur.execute(insert_sql)
-
-    logging.info(f"[Iceberg] Successfully inserted {len(df)} rows into {full_table_name}")
+        df_spark.writeTo(f"{catalog}.{schema}.{table}").append()
+    # logging.info(f"[Iceberg] Successfully inserted {len(df)} rows into {full_table_name}")
+    logging.info(f"[PySpark] Successfully inserted {len(df)} rows into {full_table_name}")
+    spark.stop()
     cur.close()
     conn.close()

@@ -21,6 +21,7 @@ def load_env():
             "catalog": os.getenv("ICEBERG_CATALOG", "nessie"),
             "schema": os.getenv("ICEBERG_SCHEMA", "raw"),
             "format": os.getenv("ICEBERG_FORMAT", "parquet"),
+            "nessie_url": os.getenv("NESSIE_URL"),
             "list_tables": [t.strip() for t in os.getenv("ICEBERG_TABLE_NAMES", "").split(",") if t.strip()],
 
         },
@@ -36,7 +37,11 @@ def load_env():
             "profiles_dir": os.getenv("DBT_PROFILES_DIR"),
         },
         "size_config": {
-            "batch_size": int(os.getenv("BATCH_SIZE",100))
+            "batch_size": int(os.getenv("BATCH_SIZE",1000))
+        },
+        "spark_config": {
+            "master_url": os.getenv("SPARK_MASTER"),
+            "deploy_mode": os.getenv("DEPLOY_MODE", "local[*]"),
         }
     }
 
