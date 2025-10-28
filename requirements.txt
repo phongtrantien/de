@@ -1,9 +1,20 @@
 apache-airflow
 pyspark==3.4.2
-dbt-core
 pytest
 s3fs
 minio
+dotenv
 pandas==2.1.4
 dbt-core==1.10.10
 dbt-trino==1.9.3
+
+
+nessie-spark-extensions-3.4_2.12-0.63.0.jar
+iceberg-spark-runtime-3.4_2.12-1.5.0.jar
+iceberg-aws-bundle-1.5.0.jar
+
+  wget https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-3.4_2.12/1.5.0/iceberg-spark-runtime-3.4_2.12-1.5.0.jar
+  305  wget https://mvnrepository.com/artifact/org.projectnessie.nessie-integrations/nessie-spark-extensions-3.4_2.12/0.63.0/nessie-spark-extensions-3.4_2.12-0.63.0.jar
+  306  wget https://repo1.maven.org/maven2/org/projectnessie/nessie-integrations/nessie-spark-extensions-3.4_2.12/0.63.0/nessie-spark-extensions-3.4_2.12-0.63.0.jar
+  307  wget https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws-bundle/1.5.0/iceberg-aws-bundle-1.5.0.jar
+

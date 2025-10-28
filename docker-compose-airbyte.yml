@@ -1,13 +1,10 @@
 version: "3.8"
-#https://github.com/compose-spec/compose-spec/blob/master/spec.md#using-extensions-as-fragments
 x-logging: &default-logging
   options:
     max-size: "100m"
     max-file: "5"
   driver: json-file
 services:
-  # hook in case we need to add init behavior
-  # every root service (no depends_on) should depend on init
   init:
     image: airbyte/init:${VERSION}
     logging: *default-logging
@@ -34,26 +31,26 @@ services:
     depends_on:
       init:
         condition: service_completed_successfully
-  db:
-    image: airbyte/db:${VERSION}
-    logging: *default-logging
-    container_name: airbyte-db
-    restart: unless-stopped
-    ports:
-      - "5432:5432"
-    environment:
-      - CONFIG_DATABASE_PASSWORD=${CONFIG_DATABASE_PASSWORD:-}
-      - CONFIG_DATABASE_URL=${CONFIG_DATABASE_URL:-}
-      - CONFIG_DATABASE_USER=${CONFIG_DATABASE_USER:-}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
-      - DATABASE_URL=${DATABASE_URL}
-      - DATABASE_USER=${DATABASE_USER}
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
-      - POSTGRES_USER=${DATABASE_USER}
-    volumes:
-      - db:/var/lib/postgresql/data
-    networks:
-      - airbyte_internal
+#  db:
+#    image: airbyte/db:${VERSION}
+#    logging: *default-logging
+#    container_name: airbyte-db
+#    restart: unless-stopped
+#    ports:
+#      - "5432:5432"
+#    environment:
+#      - CONFIG_DATABASE_PASSWORD=${CONFIG_DATABASE_PASSWORD:-}
+#      - CONFIG_DATABASE_URL=${CONFIG_DATABASE_URL:-}
+#      - CONFIG_DATABASE_USER=${CONFIG_DATABASE_USER:-}
+#      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+#      - DATABASE_URL=${DATABASE_URL}
+#      - DATABASE_USER=${DATABASE_USER}
+#      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+#      - POSTGRES_USER=${DATABASE_USER}
+#    volumes:
+#      - db:/var/lib/postgresql/data
+#    networks:
+#      - airbyte_internal
   worker:
     image: airbyte/worker:${VERSION}
     logging: *default-logging
@@ -119,7 +116,7 @@ services:
       - workspace:${WORKSPACE_ROOT}
       - ${LOCAL_ROOT}:${LOCAL_ROOT}
     ports:
-      - "9000"
+      - "9099"
     networks:
       - airbyte_internal
     depends_on:
@@ -241,7 +238,7 @@ services:
       bootloader:
         condition: service_completed_successfully
   airbyte-connector-builder-server:
-    image: airbyte/connector-builder-server:${VERSION} # Replace with airbyte/connector-atelier-server:${VERSION} to test the builder micronaut refactor
+    image: airbyte/connector-builder-server:${VERSION}
     logging: *default-logging
     container_name: airbyte-connector-builder-server
     restart: unless-stopped
@@ -277,13 +274,10 @@ services:
 volumes:
   workspace:
     name: ${WORKSPACE_DOCKER_MOUNT}
-  # the data volume is only needed for backward compatibility; when users upgrade
-  # from an old Airbyte version that relies on file-based configs, the server needs
-  # to read this volume to copy their configs to the database
   data:
     name: ${DATA_DOCKER_MOUNT}
-  db:
-    name: ${DB_DOCKER_MOUNT}
+#  db:
+#    name: ${DB_DOCKER_MOUNT}
 configs:
   flags:
     file: ./flags.yml

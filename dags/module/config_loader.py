@@ -17,12 +17,14 @@ def load_env():
             "port": int(os.getenv("TRINO_PORT", 8080)),
             "user": os.getenv("TRINO_USER", "batman"),
         },
-        "iceberg": {
+        "connector": {
             "catalog": os.getenv("ICEBERG_CATALOG", "nessie"),
             "schema": os.getenv("ICEBERG_SCHEMA", "raw"),
             "format": os.getenv("ICEBERG_FORMAT", "parquet"),
             "nessie_url": os.getenv("NESSIE_URL"),
             "list_tables": [t.strip() for t in os.getenv("ICEBERG_TABLE_NAMES", "").split(",") if t.strip()],
+            "log_table": os.getenv("ICEBERG_TABLE_LOG"),
+            "metadata_table": os.getenv("ICEBERG_TABLE_METADATA"),
 
         },
         "s3": {

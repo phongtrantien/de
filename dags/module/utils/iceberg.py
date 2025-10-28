@@ -80,27 +80,18 @@ def create_iceberg_table_if_not_exists(table: str, auto_schema: bool = True, col
     host = config["trino"]["host"]
     port = int(config["trino"]["port"])
     user = config["trino"]["user"]
-    catalog = config["iceberg"]["catalog"]
-    schema = config["iceberg"]["schema"]
-    fmt = config["iceberg"]["format"]
+    catalog = config["connector"]["catalog"]
+    schema = config["connector"]["schema"]
+    fmt = config["connector"]["format"]
     bucket = config["s3"]["bucket"]
     endpoint = config["s3"]["endpoint"]
     batch_size = int(config["size_config"]["batch_size"])
 
     source_path = f"s3://{bucket}/raw/{table}/"
-    target_path = f"s3://{bucket}/iceberg/{schema}/{table}/"
+    target_path = f"s3://{bucket}/connector/{schema}/{table}/"
 
     logging.info(f"[Airflow] Processing table: {table}")
     logging.info(f"[S3] Reading from: {source_path}")
-
-    try:
-        fs = s3fs.S3FileSystem(
-            key=config["s3"]["access_key"],
-            secret=config["s3"]["secret_key"],
-            client_kwargs={"endpoint_url":endpoint}
-        )
-    except Exception as e:
-        raise AirflowException(f"[S3] Failed to create S3 client: {e}")
 
     files = fs.glob(f"{bucket}/raw/{table}/*.parquet")
     if not files:
@@ -200,11 +191,11 @@ def create_iceberg_table_if_not_exists(table: str, auto_schema: bool = True, col
     spark = (
         SparkSession.builder
         .appName("IcebergWriter")
-        .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog")
-        .config("spark.sql.catalog.iceberg.catalog-impl", "org.projectnessie.catalog.NessieCatalog")
-        .config("spark.sql.catalog.iceberg.uri", config["iceberg"]["nessie_url"])
-        .config("spark.sql.catalog.iceberg.ref", "main")
-        .config("spark.sql.catalog.iceberg.warehouse", f"s3a://{bucket}/iceberg")
+        .config("spark.sql.catalog.connector", "org.apache.connector.spark.SparkCatalog")
+        .config("spark.sql.catalog.connector.catalog-impl", "org.projectnessie.catalog.NessieCatalog")
+        .config("spark.sql.catalog.connector.uri", config["connector"]["nessie_url"])
+        .config("spark.sql.catalog.connector.ref", "main")
+        .config("spark.sql.catalog.connector.warehouse", f"s3a://{bucket}/connector")
         .getOrCreate()
     )
 

@@ -12,4 +12,4 @@ flags:
   - name: BASIC_AUTH_PASSWORD
     serve:
       type: constant
-      value: "airbyte"
+      value: "a169ac3cb579f1171fa9ada095f1c9c8b95533bc524ef6a95ce209a2b399a76e"

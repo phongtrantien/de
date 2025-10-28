@@ -4,7 +4,7 @@ dbt_trino:
       type: trino
       method: none
       user: admin
-      database: iceberg
+      database: connector
       host: trino-coordinator
       port: 8080
       schema: staging

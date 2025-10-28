@@ -8,10 +8,8 @@ from module.utils.iceberg import create_iceberg_table_if_not_exists
 from module.config_loader import load_env
 from custom_operator.dbt_operator import DbtCoreOperator
 
-# Load config từ .env
 config = load_env()
 
-# Default DAG args
 default_args = {
     "owner": "airflow",
     "depends_on_past": False,
@@ -23,7 +21,7 @@ default_args = {
 }
 
 AIRBYTE_CONNECTION_ID = config["airbyte"]["connections"]
-ICEBERG_TABLE_NAMES = config["iceberg"]["list_tables"]
+ICEBERG_TABLE_NAMES = config["connector"]["list_tables"]
 
 
 def run_airbyte_sync(**context):
@@ -62,7 +60,7 @@ with DAG(
     schedule_interval='@daily',
     start_date=datetime(2025, 10, 13),
     catchup=False,
-    tags=["airbyte", "iceberg", "dbt"],
+    tags=["airbyte", "connector", "dbt"],
 ) as dag:
 
     trigger_airbyte = PythonOperator(
@@ -81,24 +79,24 @@ with DAG(
     )
 
 
-    DBT_PROJECT_DIR = config["dbt"]["project_dir"]
-    DBT_PROFILES_DIR = config["dbt"]["profiles_dir"]
+    # DBT_PROJECT_DIR = config["dbt"]["project_dir"]
+    # DBT_PROFILES_DIR = config["dbt"]["profiles_dir"]
+    #
+    # dbt_run = DbtCoreOperator(
+    #     task_id="dbt_run",
+    #     dbt_command="run",
+    #     dbt_project_dir=DBT_PROJECT_DIR,
+    #     dbt_profiles_dir=DBT_PROFILES_DIR,
+    #     target="dev",
+    #     full_refresh=True,
+    # )
+    #
+    # dbt_test = DbtCoreOperator(
+    #     task_id="dbt_test",
+    #     dbt_command="test",
+    #     dbt_project_dir=DBT_PROJECT_DIR,
+    #     dbt_profiles_dir=DBT_PROFILES_DIR,
+    #     target="dev",
+    # )
 
-    dbt_run = DbtCoreOperator(
-        task_id="dbt_run",
-        dbt_command="run",
-        dbt_project_dir=DBT_PROJECT_DIR,
-        dbt_profiles_dir=DBT_PROFILES_DIR,
-        target="dev",
-        full_refresh=True,
-    )
-
-    dbt_test = DbtCoreOperator(
-        task_id="dbt_test",
-        dbt_command="test",
-        dbt_project_dir=DBT_PROJECT_DIR,
-        dbt_profiles_dir=DBT_PROFILES_DIR,
-        target="dev",
-    )
-
-    trigger_airbyte >> wait_for_completion >> create_iceberg >> dbt_run >> dbt_test
+    trigger_airbyte >> wait_for_completion >> create_iceberg

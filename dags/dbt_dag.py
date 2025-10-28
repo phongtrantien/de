@@ -12,11 +12,11 @@ default_args = {
 with DAG(
     dag_id='dbt_pipeline',
     default_args=default_args,
-    description='DBT pipeline for trino/iceberg',
+    description='ETL pipeline from bronze to silver',
     schedule_interval='@daily',
     start_date=datetime(2025, 10, 6),
     catchup=False,
-    tags=['dbt'],
+    tags=['dbt','silver'],
 ) as dag:
 
     DBT_PROJECT_DIR = '/opt/airflow/dags/dbt_trino'
