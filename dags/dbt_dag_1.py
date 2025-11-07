@@ -24,21 +24,21 @@ AIRBYTE_CONNECTION_ID = config["airbyte"]["connections"]
 ICEBERG_TABLE_NAMES = config["connector"]["list_tables"]
 
 
-def run_airbyte_sync(**context):
-
-    logging.info(f"[Airflow] Trigger Airbyte sync for connection {AIRBYTE_CONNECTION_ID}")
-    job_id = trigger_sync(AIRBYTE_CONNECTION_ID)
-    context["ti"].xcom_push(key="airbyte_job_id", value=job_id)
-    logging.info(f"[Airflow] Triggered job {job_id}")
-    return job_id
-
-
-def wait_for_airbyte_sync(**context):
-
-    job_id = context["ti"].xcom_pull(task_ids="trigger_airbyte", key="airbyte_job_id")
-    logging.info(f"[Airflow] Waiting for Airbyte job {job_id}")
-    wait_for_job(job_id)
-    logging.info("[Airflow] Airbyte job completed successfully.")
+# def run_airbyte_sync(**context):
+#
+#     logging.info(f"[Airflow] Trigger Airbyte sync for connection {AIRBYTE_CONNECTION_ID}")
+#     job_id = trigger_sync(AIRBYTE_CONNECTION_ID)
+#     context["ti"].xcom_push(key="airbyte_job_id", value=job_id)
+#     logging.info(f"[Airflow] Triggered job {job_id}")
+#     return job_id
+#
+#
+# def wait_for_airbyte_sync(**context):
+#
+#     job_id = context["ti"].xcom_pull(task_ids="trigger_airbyte", key="airbyte_job_id")
+#     logging.info(f"[Airflow] Waiting for Airbyte job {job_id}")
+#     wait_for_job(job_id)
+#     logging.info("[Airflow] Airbyte job completed successfully.")
 
 
 def create_iceberg_tables(**context):
@@ -53,7 +53,7 @@ def create_iceberg_tables(**context):
             raise
 
 
-with DAG(
+with (DAG(
     "airbyte_to_iceberg_pipeline",
     default_args=default_args,
     description="ETL pipeline: Airbyte → Iceberg → DBT",
@@ -61,17 +61,17 @@ with DAG(
     start_date=datetime(2025, 10, 13),
     catchup=False,
     tags=["airbyte", "connector", "dbt"],
-) as dag:
+) as dag):
 
-    trigger_airbyte = PythonOperator(
-        task_id="trigger_airbyte",
-        python_callable=run_airbyte_sync,
-    )
-
-    wait_for_completion = PythonOperator(
-        task_id="wait_for_completion",
-        python_callable=wait_for_airbyte_sync,
-    )
+    # trigger_airbyte = PythonOperator(
+    #     task_id="trigger_airbyte",
+    #     python_callable=run_airbyte_sync,
+    # )
+    #
+    # wait_for_completion = PythonOperator(
+    #     task_id="wait_for_completion",
+    #     python_callable=wait_for_airbyte_sync,
+    # )
 
     create_iceberg = PythonOperator(
         task_id="create_iceberg_tables",
@@ -99,4 +99,5 @@ with DAG(
     #     target="dev",
     # )
 
-    trigger_airbyte >> wait_for_completion >> create_iceberg
+    # trigger_airbyte >> wait_for_completion >>
+    create_iceberg

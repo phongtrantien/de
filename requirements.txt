@@ -1,4 +1,4 @@
-apache-airflow
+
 pyspark==3.4.2
 pytest
 s3fs
@@ -7,6 +7,7 @@ dotenv
 pandas==2.1.4
 dbt-core==1.10.10
 dbt-trino==1.9.3
+pyarrow
 
 
 nessie-spark-extensions-3.4_2.12-0.63.0.jar
@@ -18,3 +19,8 @@ iceberg-aws-bundle-1.5.0.jar
   306  wget https://repo1.maven.org/maven2/org/projectnessie/nessie-integrations/nessie-spark-extensions-3.4_2.12/0.63.0/nessie-spark-extensions-3.4_2.12-0.63.0.jar
   307  wget https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws-bundle/1.5.0/iceberg-aws-bundle-1.5.0.jar
 
+python3 -m venv venv
+./venv/bin/pip install -U pip
+./venv/bin/pip install -r requirements.txt
+tar -czf venv.tar.gz venv
+# upload lên: s3a://lake-house/envs/venv.tar.gz
