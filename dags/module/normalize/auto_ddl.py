@@ -67,20 +67,17 @@ class IcebergDDLFromTmpView:
             if self.sanitize_column_names:
                 sanitized = self._sanitize(col)
                 if sanitized != col:
-                    # alias trong SELECT để cột ra bảng đích có tên an toàn
                     select_cols.append(f"`{col}` AS `{sanitized}`")
                 else:
                     select_cols.append(f"`{col}`")
             else:
                 select_cols.append(f"`{col}`")
 
-        # SELECT list
         if self.select_columns_from_schema:
             select_expr = ", ".join(select_cols)
         else:
             select_expr = "*"
 
-        # TBLPROPERTIES
         props = {"format-version": str(self.format_version)}
         props.update(self.extra_tblproperties)
         if props:
@@ -88,10 +85,12 @@ class IcebergDDLFromTmpView:
             props_sql = f"\nTBLPROPERTIES (\n    {kv}\n)"
         else:
             props_sql = ""
+        table_name = self.iceberg_full_table_name.split(".")[-1]
 
         ddl = f"""
         CREATE TABLE {self.iceberg_full_table_name}
-        USING ICEBERG{props_sql}
+        USING ICEBERG 
+        LOCATION 's3a://lake-house/raw/{table_name}' {props_sql}
         AS
         SELECT {select_expr}
         FROM {self.tmp_view_name}

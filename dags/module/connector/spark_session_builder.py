@@ -29,15 +29,33 @@ def build_spark_session(app_name: str, master_url: str, deploy_mode: str, config
         .config("spark.sql.catalog.iceberg.s3.path-style-access", "true")
         .config("spark.sql.catalog.iceberg.s3.region", config["s3"]["region"])
         .config("spark.sql.catalog.iceberg.authentication.type", "NONE")
-        .config("spark.executor.instances", "3")
-        .config("spark.executor.cores", "2")
-        .config("spark.executor.memory", "4g")
-        .config("spark.driver.memory", "4g")
-        .config("spark.kubernetes.insecure", "true")
     )
 
 
     spark = spark_builder.getOrCreate()
+    logger.info("Syncing Iceberg S3 config to Hadoop S3A config ...")
+    conf_map = {
+        "spark.sql.catalog.iceberg.s3.endpoint": config["s3"]["endpoint"],
+        "spark.sql.catalog.iceberg.s3.access-key-id": config["s3"]["access_key"],
+        "spark.sql.catalog.iceberg.s3.secret-access-key": config["s3"]["secret_key"],
+        "spark.sql.catalog.iceberg.s3.path-style-access": "true",
+        "spark.sql.catalog.iceberg.s3.region": "us-east-1",
+    }
+
+    jconf = spark.sparkContext._jsc.hadoopConfiguration()
+    sconf = spark.sparkContext.getConf()
+
+    for src, dest in conf_map.items():
+        if sconf.contains(src):
+            val = sconf.get(src)
+            jconf.set(dest, val)
+            logger.info(f"  synced {src} -> {dest} = {val}")
+
+    jconf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+    jconf.set("fs.s3a.connection.ssl.enabled", "false")
+    jconf.set("fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
+
+    logger.info("SparkSession created successfully.")
 
     logger.info("\n=== Spark Loaded JARs ===")
     for jar in spark.sparkContext._gateway.jvm.java.lang.System.getProperty("java.class.path").split(":"):

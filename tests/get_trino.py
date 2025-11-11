@@ -8,7 +8,7 @@ def query_trino_sample(
     user="admin",
     catalog="iceberg",
     schema="raw",
-    sql="SELECT * FROM par_etl_table LIMIT 10",
+    sql="SHOW TABLES FROM ICEBERG.RAW",
     username=None,
     password=None,
     http_scheme="http",

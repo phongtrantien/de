@@ -23,20 +23,12 @@ config = load_env()
 def create_iceberg_table_if_not_exists(table: str, spark, config: dict):
     detect_and_set_java_home()
     detect_and_set_spark_home()
-    # format_value_for_sql()
-
     catalog = config["iceberg"]["catalog"]
     schema = config["iceberg"]["schema"]
-    fmt = config["iceberg"]["format"]
     bucket = config["s3"]["bucket"]
-    endpoint = config["s3"]["endpoint"]
     batch_size = int(config["size_config"]["batch_size"])
     log_table = config["iceberg"]["log_table"]
-    metadata_table = config["iceberg"]["metadata_table"]
     source_path = f"s3://{bucket}/raw/VBI_DATA/{table}/"
-    target_path = f"s3://{bucket}/iceberg/{schema}/{table}/"
-    spark_master = config["spark_config"]["master_url"]
-    deploy_mode = config["spark_config"]["deploy_mode"]
     full_table_name = f"{catalog}.{schema}.{table}"
     log_table = f"{catalog}.{schema}.{log_table}"
     table_name = table
@@ -52,17 +44,6 @@ def create_iceberg_table_if_not_exists(table: str, spark, config: dict):
     if not files:
         raise RuntimeError(f"No Parquet files found for {table}")
 
-    # latest_file = sorted(files, key=extract_timestamp_key, reverse=True)[0]
-    # logger.info(f"Found latest parquet file: {latest_file}")
-    #
-    # latest_ts = extract_timestamp_key(latest_file)
-    # if isinstance(latest_ts, str):
-    #     latest_ts = datetime.strptime(latest_ts, "%Y_%m_%d")
-    #
-    # if latest_ts.date() < datetime.now().date():
-    #     logger.warning("Latest file is not up to date — skipping.")
-    #     df = None
-    # else:
     file_paths = [f"s3://{file}" for file in files]
     logger.info(f"Found {len(file_paths)} parquet files.")
 
@@ -101,8 +82,6 @@ def create_iceberg_table_if_not_exists(table: str, spark, config: dict):
     conn = get_trino_connection()
     cur = conn.cursor()
 
-    #spark = build_spark_session("IcebergWriter", spark_master, deploy_mode, config)
-
     try:
         if df is not None and not df.empty:
             total_batches = math.ceil(len(df) / batch_size)
@@ -119,7 +98,6 @@ def create_iceberg_table_if_not_exists(table: str, spark, config: dict):
                     LIMIT 1
                 """
                 result = spark.sql(query)
-                spark.sql("SELECT * FROM iceberg.bronze.BC_BH_DS_KHACH_HANG").show(10)
                 if result.count() > 0:
                     logger.info(f"Skip writing — already SUCCESS for {full_table_name} on {etl_date}")
                     return
